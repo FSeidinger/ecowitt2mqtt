@@ -8,3 +8,6 @@ coverage.xml
 dist
 poetry.lock
 tags
+
+# Ignore virtual environment
+.venv

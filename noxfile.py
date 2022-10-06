@@ -11,7 +11,8 @@ def install_with_constraints(session: nox.sessions.Session, *args: str, **kwargs
         session.run(
             "poetry",
             "export",
-            "--dev",
+            "--with",
+            "dev",
             "--without-hashes",
             "--format=requirements.txt",
             f"--output={requirements.name}",
@@ -30,10 +31,7 @@ def coverage(session: nox.sessions.Session) -> None:
         "--cov-report=xml",
         "tests/",
     ]
-    session.run("poetry", "install", "--no-dev", external=True)
-    install_with_constraints(
-        session, "aiohttp", "pytest", "pytest-asyncio", "pytest-cov"
-    )
+    session.run("poetry", "install", "--only", "main", external=True)
     session.run("pytest", *args)
 
 
@@ -42,5 +40,4 @@ def tests(session: nox.sessions.Session) -> None:
     """Run all tests."""
     args = session.posargs or ["-s", "tests/"]
     session.run("poetry", "install", "--no-dev", external=True)
-    install_with_constraints(session, "aiohttp", "pytest", "pytest-asyncio")
     session.run("pytest", *args)
