@@ -382,11 +382,16 @@ STATE_UNKNOWN = "unknown"
 
 
 def get_availability_payload(data_point: CalculatedDataPoint) -> str:
-    """Get the availability payload for a data point.
-
-    Right now, this is hardcoded to always available.
     """
-    return AVAILABILITY_ONLINE
+    Get the availability payload for a data point.
+
+    If calculated datapoint is valid, the availability will be published as 'online'
+    If calculated datapoint is 'unknow', the availability will be published as 'offline'
+    """
+    if data_point.value is not None:
+        return AVAILABILITY_ONLINE
+    else:
+        return AVAILABILITY_OFFLINE
 
 
 def get_state_payload(data_point: CalculatedDataPoint) -> DataValueType:
@@ -505,15 +510,16 @@ class HomeAssistantDiscoveryPublisher(MqttPublisher):
                         get_state_payload(data_point),
                     ),
                 ):
-                    tasks.append(
-                        asyncio.create_task(
-                            self._client.publish(
-                                topic,
-                                payload=generate_mqtt_payload(payload),
-                                retain=self._config.mqtt_retain,
+                    if payload is not STATE_UNKNOWN:
+                        tasks.append(
+                            asyncio.create_task(
+                                self._client.publish(
+                                    topic,
+                                    payload=generate_mqtt_payload(payload),
+                                    retain=self._config.mqtt_retain,
+                                )
                             )
                         )
-                    )
 
                     await asyncio.gather(*tasks)
         except MqttError:
